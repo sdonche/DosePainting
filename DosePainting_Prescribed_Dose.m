@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Prescribed Dose
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Method head and neck tumours/glioblastoma
+%
+% Information
 % 
 % D(I) = D(low) + (I - I(low))/(I(high) - I(low))*(D(high) - D(low))
 % 
@@ -34,12 +35,14 @@ imtool close all;
 %   Medical Image Reader and Viewer (https://www.mathworks.com/matlabcentral/fileexchange/53745-medical-image-reader-and-viewer)
 %   nifti_utils (https://github.com/justinblaber/nifti_utils)
 
+% TODO update this in all scripts
 disp('Reading Toolboxes...')
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\spm12')
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\NIfTI_20140122')
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\Medical Image Reader and Viewer')
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\nifti_utils-master\nifti_utils') % "updated" version of NIfTI_20140122
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\Scripts\App_BoundingBox')
+addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\DosePainting\')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% READ IMAGES
@@ -72,7 +75,29 @@ disp(['Reading coregistered images from ',pathname_coreg,'...'])
 
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
+%% IDEAL DOSE MAP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+cd 'C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\DosePainting'
 
+% Necessary variables
+IDM     = zeros(size(PET));     % Ideal Dose Map (IDM)
+I_high  = max(max(max(PET)));   % TODO maybe better to use maximum in bounding box area, not global max?
+I_low   = I_high * 0.25;
+D_high  = 2800;                 % unit: cGy
+D_low   = 2000;                 % unit: cGy
+
+for i = 1 : size(PET,1)
+    for j = 1 : size(PET,2)
+        for k = 1 : size(PET,3)
+            
+            % TODO only do the calculation in bounding box
+            Intensity = PET(i,j,k);
+            PresDose = PrescribedDose(Intensity,I_high,I_low,D_high,D_low);
+            IDM(i,j,k) = PresDose;
+            
+        end
+    end
+end
+
+clearvars i j k Intensity
