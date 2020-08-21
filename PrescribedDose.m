@@ -16,11 +16,6 @@ function PresDose = PrescribedDose(I,I_high,I_low,D_high,D_low)
 % D(low)        = 20 Gy
 % I(high)       = 95% of PET voxel intensity        
 % I(low)        = I(high)*0.25
-% 
-% TODO
-% To minimize the influence of PET signal noise on I(low) and I(high), the
-% dose was escalated between 25 and 100% of the 95th percentile PET voxel
-% intensity value within PTV(69+PET)
 
 PresDose = D_low + (I - I_low)/(I_high - I_low)*(D_high - D_low);
 
