@@ -78,11 +78,13 @@ disp(['Reading coregistered images from ',pathname_coreg,'...'])
 %% IDEAL DOSE MAP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cd 'C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\DosePainting'
+% Load variables
+load('BoundingBox.mat')
+load('PET_VOI.mat')
 
-% Necessary variables
+% Variables
 IDM     = zeros(size(PET));     % Ideal Dose Map (IDM)
-I_high  = max(max(max(PET)));   % TODO maybe better to use maximum in bounding box area, not global max?
+I_high  = max(max(max(PET_VOI)));   % TODO maybe better to use maximum in bounding box area, not global max?
 I_low   = I_high * 0.25;
 D_high  = 2800;                 % unit: cGy
 D_low   = 2000;                 % unit: cGy
@@ -92,7 +94,7 @@ for i = 1 : size(PET,1)
         for k = 1 : size(PET,3)
             
             % TODO only do the calculation in bounding box
-            Intensity = PET(i,j,k);
+            Intensity = PET_VOI(i,j,k);
             PresDose = PrescribedDose(Intensity,I_high,I_low,D_high,D_low);
             IDM(i,j,k) = PresDose;
             
@@ -101,3 +103,16 @@ for i = 1 : size(PET,1)
 end
 
 clearvars i j k Intensity
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure()
+orthosliceViewer(IDM)
+
+figure()
+orthosliceViewer(PET)
+
+imtool(IDM(:,:,85),[1500 2900])
+
