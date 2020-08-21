@@ -1,13 +1,24 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%Dose Painting Variabele Collimator SARRP%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Dose Painting%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   Info Maximum field size: 40 x 80 mm 
-%        Minimum field size: 1 x 1 mm
-%   Data: save images in mango: orientation 
-%         RAS format: +x is Right, +y is Anterior, +z is Superior
+%
+% Information
+% 
+% Co-registration 
+% of 
+% CBCT from SARRP (Xstrahl) --> reference image
+% orientation: head 
+% to
+% MRI from BioSpin Pharmascan (Bruker)
+% orientation: head first prone
+% and
+% PET from Beta-cube (Molecubes)
+% orientation:
 
-% Start with a clean slate
-clear;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CLEAN SLATE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clearvars;
 close all;
 clc;
 imtool close all;
@@ -388,7 +399,7 @@ scans_coreg = scans_coreg(3:end); % Remove . and ..
     
 %% Examine coregistration
 
-% Clear data
+% Clear workspace
 clearvars -except pathname pathname_coreg  
 
 % Path
@@ -407,35 +418,13 @@ PET_coreg_info = niftiinfo(fullfile([pathname_coreg, scans_coreg(5).name]));
 
 % Display
 
-CmpCT_MRI = CompImages(CT,MRI_coreg)
+CmpCT_MRI = CompImages(CT,MRI_coreg);
 
 waitfor(CmpCT_MRI)
 
-CmpCT_PET = CompImages(CT,PET_coreg)
+CmpCT_PET = CompImages(CT,PET_coreg);
 
 
 
-
-%%
-
-%         %==============================================================%
-%         %%% normalisation to MNI space
-%         normalise_all_images(pathname, reference_image, scannames, numscans)
-%         
-%         copyfile([pathname, 'w', reference_image], [pathname, 'wr', reference_image])
-%         delete([pathname, 'w', reference_image])
-%         
-%         for j=1:numscans-1
-%             delete([pathname, 'r', otherimages{j}])
-%         end
-
-
-% fixed = CT(:,:,238);
-% moving = MRI(:,:,82);
-% tform = imregtform(moving, fixed,'rigid',optimizer,metric)
-% movingRegistered = imwarp(moving,tform,'OutputView',imref2d(size(fixed)));
-% figure()
-% imshowpair(fixed,movingRegistered,'Scaling','joint');
-% 
-% 
-% helperVolumeRegistration(fixed,moving)
+%   Data: save images in mango: orientation 
+%         RAS format: +x is Right, +y is Anterior, +z is Superior
