@@ -15,7 +15,13 @@
 % such a curve would drop steeply at Q = 1. QF is defined as the mean
 % absolute deviation of Q to 1 within PTV(69+PET):
 %
-% QF = (1/n)*sum(p)abs(Q(p)-1) 
+% QF = (1/n)*sum(p)abs(Q(p)-1)
+%
+% This method is adopted from [18F]FDG PET voxel intensity-based IMRT for
+% head and neck cancer at Ghent University Hospital
+% (https://doi.org/10.1016/j.radonc.2006.03.003)
+%
+% Conform PhD Sam Donche
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CLEAN SLATE
