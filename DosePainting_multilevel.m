@@ -1,11 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%DOSE PAINTING VARIABLE COLLIMATOR%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Dose Painting%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Information
 %
 %        Maximum field size: 40 x 80 mm 
 %        Minimum field size: 1 x 1 mm
+%        SARRP resolution: 0.01 mm
+%
+% Conform PhD Sam Donche
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CLEAN SLATE
@@ -16,12 +19,11 @@ close all;
 clc;
 imtool close all;
 
-% TODO Q factor
 % TODO bed 0° en andere mogelijkheden
 % TODO literatuur variabele collimator
 % TODO methode voor dosis nagaan
 % TODO vergelijking MRI
-% TODO make jason file
+% TODO make json file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MATLAB TOOLBOXES
@@ -111,6 +113,7 @@ DP_output = DosePainting;
     
 % Use VOI 50 as a 'bounding box' for other VOI definitions
     PET_VOI_50 = double(PET) .* PET_VOI_SEG_LARG_50;
+    save('PET_VOI_50.mat','PET_VOI_50')
 
 % Calculate other VOIs
 % PET thresholds
@@ -208,7 +211,7 @@ DP_output = DosePainting;
     clearvars labeledImage_50 labeledImage_60 labeledImage_70 labeledImage_80 labeledImage_90 labeledImage_95 ...
         THRES_PET_50 THRES_PET_60 THRES_PET_70 THRES_PET_80 THRES_PET_90 THRES_PET_95 ...
         PET_VOI_SEG_50 PET_VOI_SEG_60 PET_VOI_SEG_70 PET_VOI_SEG_80 PET_VOI_SEG_90 PET_VOI_SEG_95 ...
-        PET_VOI_50 PET_VOI_MAX VOI
+        PET_VOI_MAX VOI
     
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -622,7 +625,7 @@ norm_120 = [1,0,-tand(30)];     % Gantry 120°
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Change A to desired value
 % TODO verander dit naar een functie
-A = 95.40; % Notation A = VOI.Gantry_angle
+A = 50.40; % Notation A = VOI.Gantry_angle
 
 switch A
     case 50.0       % VOI50, Gantry 0°
@@ -1856,3 +1859,34 @@ scatter3(VOI50_centroid(1),VOI50_centroid(2),VOI50_centroid(3),'*y')
 legend([l1, l2, l3, l4],{'Gantry 0°','Gantry 40°', 'Gantry 80°', 'Gantry 120°'})
 hold off
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% JSON ENCODING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+json.FileVersion = 5;
+json.name = "NewExperiment_SubjectHierarchy";
+json.studies.beams.adjust_weight = "Yes";
+json.studies.beams.collimator = "v5.0x5.0 mm";
+json.studies.beams.collimator_rotation_angle = "0";
+json.studies.beams.collimator_x = 5.0; 
+json.studies.beams.collimator_y = 5.0; 
+json.studies.beams.couch = 0; 
+json.studies.beams.gantry = 0; 
+json.studies.beams.isocenter = "IsoC_1"; 
+json.studies.beams.label = "Beam"; 
+json.studies.beams.ssd = "null"; %eigelijk zonder aanhalingstekens
+json.studies.beams.time = "0"; 
+json.studies.beams.type = "Beam"; 
+json.studies.beams.weight = 25.0;
+json.studies.contours = [];
+json.studies.dose_type = "Water";
+json.studies.heterogene = "true";
+json.studies.isocenters.coordinates = [0.5, 11.4, -6.26];
+json.studies.isocenters.dose = 2000;
+json.studies.isocenters.name = "IsoC_1";
+
+encoded = jsonencode(json)
+
+FileID = fopen('Test.json','w')
+
+fprintf(FileID,encoded)
