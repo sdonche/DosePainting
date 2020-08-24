@@ -14,6 +14,8 @@
 % and
 % PET from Beta-cube (Molecubes)
 % orientation:
+%
+% Conform PhD Sam Donche
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CLEAN SLATE
@@ -42,6 +44,7 @@ addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\S
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CONVERSION DICOM TO NIFTI
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conversion in mricron
 % NIfTI = NeuroInformatics Technology Initiative
 
 % Workdirectory
@@ -58,15 +61,17 @@ disp('Making NIfTI directory')
     disp('Converting CT')
     !dcm2niix -o "./1NIfTI/" -c "CT" -d 0 -s y -f 1CT_%i ./CT
     % help: !dcm2niix -h &
-    % system() can also be used, if output variables are necessary
+    disp(' ')
 
 % Convert MRI
     disp('Converting MRI')
     !dcm2niix -o "./1NIfTI/" -c "MR" -d 0 -s y -f 2MRI_%n ./MRI
+    disp(' ')
 
 % Convert PET
     disp('Converting PET')
     !dcm2niix -o "./1NIfTI/" -c "PT" -d 0 -s y -f 3PET_%i ./PET
+    disp(' ')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% READ IMAGES
@@ -217,7 +222,7 @@ scans_reo = scans_reo(3:end); % Remove . and ..
 !copy /Y 2Reorient\2MRI_reorient.nii "3Crop\2MRI_noncropped.nii"
 
 % Parameters
-%PET
+% PET
 % # pixels removed from each side
 crop_pet_x_1 = 40;      % Left side
 crop_pet_x_2 = 40;      % Right side
