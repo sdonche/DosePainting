@@ -18,6 +18,8 @@
 % dose was escalated between 25 and 100% of the 95th percentile PET voxel
 % intensity value within PTV(69+PET)
 %
+% Conform PhD Sam Donche
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CLEAN SLATE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,10 +83,11 @@ disp(['Reading coregistered images from ',pathname_coreg,'...'])
 % Load variables
 load('BoundingBox.mat')
 load('PET_VOI.mat')
+load('PET_VOI_50.mat')
 
 % Variables
 IDM     = zeros(size(PET));     % Ideal Dose Map (IDM)
-I_high  = max(max(max(PET_VOI)));   % TODO maybe better to use maximum in bounding box area, not global max?
+I_high  = max(max(max(PET_VOI_50)));   % TODO maybe better to use maximum in bounding box area, not global max?
 I_low   = I_high * 0.25;
 D_high  = 2800;                 % unit: cGy
 D_low   = 2000;                 % unit: cGy
@@ -94,9 +97,11 @@ for i = 1 : size(PET,1)
         for k = 1 : size(PET,3)
             
             % TODO only do the calculation in bounding box
-            Intensity = PET_VOI(i,j,k);
-            PresDose = PrescribedDose(Intensity,I_high,I_low,D_high,D_low);
-            IDM(i,j,k) = PresDose;
+            Intensity = PET_VOI_50(i,j,k);
+            if Intensity > 0
+                PresDose = PrescribedDose(Intensity,I_high,I_low,D_high,D_low);
+                IDM(i,j,k) = PresDose;
+            end
             
         end
     end
@@ -105,7 +110,7 @@ end
 clearvars i j k Intensity
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 
+%% VIEW IMAGES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure()
@@ -115,4 +120,10 @@ figure()
 orthosliceViewer(PET)
 
 imtool(IDM(:,:,85),[1500 2900])
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% SAVE IDM
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+save('IDM.mat','IDM')
 
