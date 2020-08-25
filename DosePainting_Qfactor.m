@@ -82,13 +82,40 @@ disp(['Reading coregistered images from ',pathname_coreg,'...'])
 %% READ DOSE MAPS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Load SARRP dose map
+file_name_map = 'SARRPDose.nii';
+X = ['Reading ', file_name_map,'...'];
+disp(X); clearvars X;
+DoseMap = niftiread(fullfile([pathname,file_name_map]));
+DoseMap_info = niftiinfo(fullfile([pathname,file_name_map]));
+
 % Load ideal dose map
 load('IDM.mat')
 
-% Load SARRP dose map
-% DoseMap = niftiread(...
-% DoseMap_info = niftiinfo(...
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% REORIENT DOSEMAP
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reorient dose map calculated by SARRP
+% TODO check if this is correct
 
+DoseMap_flipped = flip(DoseMap,2);
+
+% figure()
+% orthosliceViewer(flipped)
+% figure()
+% orthosliceViewer(DoseMap)
+% figure()
+% orthosliceViewer(IDM)
+% figure()
+% orthosliceViewer(CT)
+
+%     % Flip around Z-axis
+%     DoseMap_info.Transform.T(3,1:3) = -(CT_info.Transform.T(3,1:3));
+%     DoseMap_info.Transform.T(4,2) = -(CT_info.Transform.T(4,2)); % adjust translation along y-axis
+% 
+%     % Save new nifti file
+%     % Sform in header is automatically adjusted when saving
+%     niftiwrite(DoseMap,'SARRPDose_reorient.nii',DoseMap_info);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CALCULATE Q-factor
@@ -104,7 +131,7 @@ for i = 1 : size(PET,1)
             IdealDose = IDM(i,j,k);
             if IdealDose > 1
                 
-                ObtainedDose = DoseMap(i,j,k);
+                ObtainedDose = DoseMap_flipped(i,j,k);
                 Qp(counter) = ObtainedDose/IdealDose;
                 counter = counter + 1;
                 
@@ -126,8 +153,19 @@ Vol_hist = zeros(1,length(Q_hist));
 for i = 1 : length(Q_hist)
     
     Q_val = Q_hist(i);
-    Vol_hist(i) = sum(Qp <= Q_val);
+    Vol_hist(i) = sum(Qp >= Q_val)/length(Qp)*100;
     
 end
 
 scatter(Q_hist,Vol_hist)
+xlabel('Q-value')
+ylabel('Volume (%)')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+figure()
+orthosliceViewer(DoseMap)
