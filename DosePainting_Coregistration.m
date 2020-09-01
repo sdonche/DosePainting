@@ -151,13 +151,35 @@ disp(['Reading files from ',pathname_nii,'...'])
     PET_info.raw.qoffset_y = 0;
     PET_info.raw.qoffset_z = 0;
 
-    
-% Filter PET data
-% Amide filter: Kernel size = 31; FWHM(mm) = 1 mm
-% FWHM = 1;
-% sigma = FWHM / (sqrt(8 * log(2)) * PET_info.PixelDimensions(1));
-% 
-% PET = imgaussfilt3(PET, sigma, 'FilterSize', 31);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FILTER PET DATA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PET data reconstruction:
+% OSEM 30 iterations
+%
+% Amide filter: 
+% Kernel size = 31 (pixels?)
+% FWHM(mm) = 1 mm
+
+% Method 1
+% Do not account for pixelsize
+% sigma_1 = FWHM / (sqrt(8 * log(2)));
+% figure()
+% orthosliceViewer(PET)
+% PET_filter = imgaussfilt3(PET, sigma_1, 'FilterSize', 31);
+% figure()
+% orthosliceViewer(PET_filter)
+
+% Method 2
+% Account for pixelsize
+% sigma_2 = FWHM / (sqrt(8 * log(2))* PET_info.PixelDimensions(1));
+% PET_filter_pix = imgaussfilt3(PET, sigma_2, 'FilterSize', 31);
+% figure()
+% orthosliceViewer(PET_filter_pix)
+
+FWHM = 1;
+sigma = FWHM / (sqrt(8 * log(2))* PET_info.PixelDimensions(1));
+PET = imgaussfilt3(PET, sigma, 'FilterSize', 31);
 
     
 % SPM LOAD
