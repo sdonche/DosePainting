@@ -4,6 +4,8 @@
 %
 % Information
 %
+% In this version the couch position is always at 0°
+%
 %        Maximum field size: 40 x 80 mm 
 %        Minimum field size: 1 x 1 mm
 %        SARRP resolution: 0.01 mm
@@ -21,9 +23,8 @@ imtool close all;
 
 % TODO bed 0° en andere mogelijkheden
 % TODO literatuur variabele collimator
-% TODO methode voor dosis nagaan
 % TODO vergelijking MRI
-% TODO make json file
+% TODO check norm vectors
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% MATLAB TOOLBOXES
@@ -629,6 +630,7 @@ A = 50.40; % Notation A = VOI.Gantry_angle
 
 switch A
     case 50.0       % VOI50, Gantry 0°
+        figure()
         % Perpendicular plane
         f1 = norm_0(1);
         f2 = norm_0(2);
@@ -660,6 +662,7 @@ switch A
         hold off
         
     case 50.40      % VOI50, Gantry 40°
+        figure()
         % Perpendicular plane
         f1 = norm_40(1);
         f2 = norm_40(2);
@@ -692,6 +695,7 @@ switch A
         hold off
         
     case 50.80      % VOI50, Gantry 80°
+        figure()
         % Perpendicular plane
         f1 = norm_80(1);
         f2 = norm_80(2);
@@ -724,6 +728,7 @@ switch A
         hold off       
         
     case 50.120     % VOI50, Gantry 120°
+        figure()
         % Perpendicular plane
         f1 = norm_120(1);
         f2 = norm_120(2);
@@ -756,6 +761,7 @@ switch A
         hold off 
         
     case 60.0       % VOI60, Gantry 0°
+        figure()
         % Perpendicular plane
         f1 = norm_0(1);
         f2 = norm_0(2);
@@ -787,6 +793,7 @@ switch A
         hold off
         
     case 60.40      % VOI60, Gantry 40°
+        figure()
         % Perpendicular plane
         f1 = norm_40(1);
         f2 = norm_40(2);
@@ -818,6 +825,7 @@ switch A
         hold off
         
     case 60.80      % VOI60, Gantry 80°
+        figure()
         % Perpendicular plane
         f1 = norm_80(1);
         f2 = norm_80(2);
@@ -849,6 +857,7 @@ switch A
         hold off
         
     case 60.120     % VOI60, Gantry 120°
+        figure()
         % Perpendicular plane
         f1 = norm_120(1);
         f2 = norm_120(2);
@@ -880,6 +889,7 @@ switch A
         hold off
         
     case 70.0       % VOI70, Gantry 0°
+        figure()
         % Perpendicular plane
         f1 = norm_0(1);
         f2 = norm_0(2);
@@ -911,6 +921,7 @@ switch A
         hold off
         
     case 70.40      % VOI70, Gantry 40°
+        figure()
         % Perpendicular plane
         f1 = norm_40(1);
         f2 = norm_40(2);
@@ -942,6 +953,7 @@ switch A
         hold off
         
     case 70.80      % VOI70, Gantry 80°
+        figure()
         % Perpendicular plane
         f1 = norm_80(1);
         f2 = norm_80(2);
@@ -973,6 +985,7 @@ switch A
         hold off
         
     case 70.120     % VOI70, Gantry 120°
+        figure()
         % Perpendicular plane
         f1 = norm_120(1);
         f2 = norm_120(2);
@@ -1012,7 +1025,7 @@ switch A
     case 90.80
     case 90.120
     case 95.0
-        
+        figure()
         % Perpendicular plane
         f1 = norm_0(1);
         f2 = norm_0(2);
@@ -1044,6 +1057,7 @@ switch A
         hold off
         
     case 95.40
+        figure()
         % Perpendicular plane
         f1 = norm_40(1);
         f2 = norm_40(2);
@@ -1075,6 +1089,7 @@ switch A
         hold off
         
     case 95.80
+        figure()
         % Perpendicular plane
         f1 = norm_80(1);
         f2 = norm_80(2);
@@ -1106,6 +1121,7 @@ switch A
         hold off
         
     case 95.120
+        figure()
         % Perpendicular plane
         f1 = norm_120(1);
         f2 = norm_120(2);
