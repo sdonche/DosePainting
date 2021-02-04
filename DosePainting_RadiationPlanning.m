@@ -9,10 +9,10 @@
 % therapy with the SARRP (XStrahl). 
 %
 % Specifications/limitations SARRP:
-%       - Couch positions:  0°, -45°, -90°
+%       - Couch positions:  0Â°, -45Â°, -90Â°
 %       - Gantry angles:    any angle
-%                           for 0° & -45°   -> 0° - 120°
-%                           for -90°        -> 0° - 60° (avoid collision
+%                           for 0Â° & -45Â°   -> 0Â° - 120Â°
+%                           for -90Â°        -> 0Â° - 60Â° (avoid collision
 %                           with animal)
 %       - Jaw size:         maximum: 40 x 80 mm 
 %                           minmum: 1 x 1 mm
