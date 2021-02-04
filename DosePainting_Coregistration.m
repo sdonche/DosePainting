@@ -1,21 +1,35 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Dose Painting%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Information
 % 
-% Co-registration 
-% of 
-% CBCT from SARRP (Xstrahl) --> reference image
-% orientation: head 
-% to
-% MRI from BioSpin Pharmascan (Bruker)
-% orientation: head first prone
-% and
-% PET from Beta-cube (Molecubes)
-% orientation:
+% This script coregisters three imaging modalities (CT, MRI and PET).
+% It consists of multiple steps:
+%       - Conversion of DICOM to NIfTI
+%       - Filter image (PET)
+%       - Adjust orientation
+%       - Image cropping (PET)
+%       - Move image center (PET)
+%       - Coregistration
 %
-% Conform PhD Sam Donche
+% Script usage:
+%   - Move MATLAB to a workdirectory
+%   - Move images to seperate folders in the workdirectory
+%   - Name the folders "CT", "MRI" and "PET"
+%
+%   Workdirectory
+%       -> CT
+%       -> MRI
+%       -> PET
+%
+% Animal orientation during imaging
+%   - CBCT from SARRP (XStrahl) = REFERENCE IMAGE
+%       -> head towards entrance, move motorized bed 10 mm downwards
+%   - MRI from Biospin Pharmascan (Bruker)
+%       -> head first prone
+%   - PET from Beta-cube (Molecubes)
+%       -> default
+%
+% Written by Sam Donche
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CLEAN SLATE
@@ -29,29 +43,27 @@ imtool close all;
 %% MATLAB TOOLBOXES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   SPM12 (https://www.fil.ion.ucl.ac.uk/spm/software/download/)
-%   NIFTI and ANALYZE tools (https://nl.mathworks.com/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image)
-%   Medical Image Reader and Viewer (https://www.mathworks.com/matlabcentral/fileexchange/53745-medical-image-reader-and-viewer)
-%   nifti_utils (https://github.com/justinblaber/nifti_utils)
-
-disp('Reading Toolboxes...')
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\spm12')
-addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\NIfTI_20140122')
-addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\Medical Image Reader and Viewer')
-addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Extra\nifti_utils-master\nifti_utils') % "updated" version of NIfTI_20140122
 addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\Scripts\App_BoundingBox')
+addpath('C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\Scripts')
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% VARIABLES TO ADJUST
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Workdirectory
+pathname = pwd;
+% or pathname = 'C:\...';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% CONVERSION DICOM TO NIFTI
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Conversion in mricron
-% NIfTI = NeuroInformatics Technology Initiative
+% For conversion from DICOM to NIfTI use the function dcm2niix from mricron
+% MATLAB can be used to perform tasks on command line level
+% Use "!" before the command 
+% help: !dcm2niix -h &
 
-% Workdirectory
-cd 'D:\Desktop\PhD Meeting\Demo';
-pathname = pwd;
-
-tic
+tic                                 % START TIMER
 
 % Make directory
 !mkdir 1NIfTI
@@ -60,7 +72,6 @@ disp('Making NIfTI directory')
 % Convert CT
     disp('Converting CT')
     !dcm2niix -o "./1NIfTI/" -c "CT" -d 0 -s y -f 1CT_%i ./CT
-    % help: !dcm2niix -h &
     disp(' ')
 
 % Convert MRI
@@ -77,12 +88,12 @@ disp('Making NIfTI directory')
 %% READ IMAGES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clc % clear command window
+clc                         % clear command window
 
 %Data directory
 pathname_nii = [pathname,'\','1NIfTI\'];
 nii = dir(pathname_nii);
-nii = nii(3:end); % Remove . and ..
+nii = nii(3:end);           % Remove . and ..
 
 % Load with matlab functions
 disp(['Reading files from ',pathname_nii,'...'])
@@ -92,9 +103,6 @@ disp(['Reading files from ',pathname_nii,'...'])
     CT_json = jsondecode(fileread(fullfile([pathname_nii, nii(1).name])));
     CT = niftiread(fullfile([pathname_nii, nii(2).name]));
     CT_info = niftiinfo(fullfile([pathname_nii, nii(2).name]));
-
-    % CT_untouched = load_untouch_nii(fullfile([pathname_nii, nii(2).name]));
-    % CT_touched = load_nii(fullfile([pathname_nii, nii(2).name])); % Verschillen!!!!
 
     % Check
     if strcmp('CT',CT_json.Modality) == 0 || strcmp('CT',CT_info.raw.aux_file) == 0
@@ -161,35 +169,12 @@ disp(['Reading files from ',pathname_nii,'...'])
 % Kernel size = 31 (pixels?)
 % FWHM(mm) = 1 mm
 
-% Method 1
-% Do not account for pixelsize
-% sigma_1 = FWHM / (sqrt(8 * log(2)));
-% figure()
-% orthosliceViewer(PET)
-% PET_filter = imgaussfilt3(PET, sigma_1, 'FilterSize', 31);
-% figure()
-% orthosliceViewer(PET_filter)
-
-% Method 2
-% Account for pixelsize
-% sigma_2 = FWHM / (sqrt(8 * log(2))* PET_info.PixelDimensions(1));
-% PET_filter_pix = imgaussfilt3(PET, sigma_2, 'FilterSize', 31);
-% figure()
-% orthosliceViewer(PET_filter_pix)
-
 FWHM = 1;
 sigma = FWHM / (sqrt(8 * log(2))* PET_info.PixelDimensions(1));
 PET = imgaussfilt3(PET, sigma, 'FilterSize', 31);
 
-    
-% SPM LOAD
-% CT_header = spm_vol([pathname_scans,'1CT.nii']);
-% CT = spm_read_vols(CT_header);
-
-%error('Unexpected file extension: %s', fExt);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Adjust orientation
+%% ADJUST ORIENTATION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Make directory
@@ -198,37 +183,30 @@ PET = imgaussfilt3(PET, sigma, 'FilterSize', 31);
 % CT
     % Flip around Z-axis
     CT_info.Transform.T(3,1:3) = -(CT_info.Transform.T(3,1:3));
-    CT_info.Transform.T(4,2) = -(CT_info.Transform.T(4,2)); % adjust translation along y-axis
-    
-    % TODO Switch column 2 and 3 around???? see clean up script
+    CT_info.Transform.T(4,2) = -(CT_info.Transform.T(4,2));
 
     % Save new nifti file
-    % Sform in header is automatically adjusted when saving
     niftiwrite(CT,'2Reorient\1CT_reorient.nii',CT_info);
 
 % MRI
-    % Flip around X-axis TODO check if translation needs to be adjusted
+    % Flip around X-axis
     MRI_info.Transform.T(1,1:3) = -(MRI_info.Transform.T(1,1:3));
-    MRI_info.Transform.T(4,1) = -(MRI_info.Transform.T(4,1)); % TODO misschien niet nodig?
+    MRI_info.Transform.T(4,1) = -(MRI_info.Transform.T(4,1));
  
     % Save new nifti file
     niftiwrite(MRI,'2Reorient\2MRI_reorient.nii',MRI_info)
 
 % PET
-    % Flip around X- and Y-axis TODO check if translation needs to be adjusted   
-    
-%     PET_info.Transform.T(1,1:3) = -(PET_info.Transform.T(1,1:3));
-%     PET_info.Transform.T(4,1) = -(PET_info.Transform.T(4,1)); % TODO misschien niet nodig?  
+    % Flip around X- and Y-axis
     PET_info.Transform.T(2,1:3) = -(PET_info.Transform.T(2,1:3));
-    PET_info.Transform.T(4,2) = -(PET_info.Transform.T(4,2)); % TODO misschien niet nodig?
-%     
-%     PET_info.Transform.T(1,1:3) = -(PET_info.Transform.T(1,1:3));
-%     PET_info.Transform.T(3,1:3) = -(PET_info.Transform.T(3,1:3));
+    PET_info.Transform.T(4,2) = -(PET_info.Transform.T(4,2));
      
     % Save new nifti file
     niftiwrite(PET,'2Reorient\3PET_reorient.nii',PET_info)
 
-%% Image cropping
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% IMAGE CROPPING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Clear previous data
 clearvars -except pathname pathname_coreg
@@ -286,25 +264,12 @@ PET_info = niftiinfo(fullfile([pathname_reo, scans_reo(3).name]));
 niftiwrite(PET,'3Crop\3PET_cropped.nii',PET_info)    
     
 % Check crop
-    centerPET = round(size(PET)/2);
-    trans = squeeze(PET(centerPET(1),:,:));
-    coronal = squeeze(PET(:,centerPET(2),:));
-    sagital = squeeze(PET(:,:,centerPET(3)));
     figure()
-    subplot(2,4,[1 2]), imshow(trans)
-    subplot(2,4,[5 6]), imshow(coronal)
-    subplot(2,4,[3 4 7 8]), imshow(sagital)
+    orthosliceViewer(PET)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% TRANSLATION (ADJUT CENTER PET)
+%% MOVE IMAGE CENTER
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Clear previous data
-%clear CT CT_info CT_json MRI MRI_info MRI_json PET PET_info PET_json 
-
-% cd 'F:\Preklinisch\MATLAB\Test_Data\Test_Conversie_DCM2NII\';
-% pathname = pwd;
-
 % Make directory and copy non-cropped images
 !mkdir 4Trans
 !copy /Y 3Crop\1CT_noncropped.nii "4Trans\1CT_nontrans.nii"
@@ -344,18 +309,10 @@ scans_crop = scans_crop(3:end); % Remove . and ..
     dim_pet_y = PET_info.ImageSize(2);
     dim_pet_z = PET_info.ImageSize(3);    
     
-    % Adjust PET translation values
+    % Adjust PET translation values; TODO: aanpassen wegens niet algemeen
     delta_pet_x = abs(dim_pet_x*pix_pet_x/2);
-    delta_pet_y = abs(dim_ct_y*pix_ct_y*2/5)-abs(dim_ct_y*pix_ct_y/2); % niet algemeen TODO AANPASSEN
+    delta_pet_y = abs(dim_ct_y*pix_ct_y*2/5)-abs(dim_ct_y*pix_ct_y/2);
     delta_pet_z = abs(dim_pet_z*pix_pet_z/2);
-    
-%     delta_pet_x = (dim_ct_x*pix_ct_x/2)-(dim_pet_x*pix_pet_x/2) + delta_ct_x;
-%     delta_pet_y = (dim_ct_y*pix_ct_y/4)-(dim_pet_y*pix_pet_y/2) + delta_ct_y;
-%     delta_pet_z = (dim_ct_z*pix_ct_z/2)-(dim_pet_z*pix_pet_z/2) + delta_ct_z;
-    
-%     delta_pet_x = (pix_ct_x*dim_ct_x)/2 - (pix_pet_x*dim_pet_x)/2 + delta_ct_x;
-%     delta_pet_y = (pix_ct_y*dim_ct_y*3)/4 - (pix_pet_y*dim_pet_y)/2 + delta_ct_y;
-%     delta_pet_z = (pix_ct_z*dim_ct_z)/2 - (pix_pet_z*dim_pet_z)/2 + delta_ct_z;
     
     PET_info.Transform.T(4,1) = delta_pet_x;
     PET_info.Transform.T(4,2) = delta_pet_y;
@@ -370,7 +327,7 @@ scans_crop = scans_crop(3:end); % Remove . and ..
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% IMAGE REGISTRATION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TODO: original file (e.g. 2MRI of 3PET worden ook aangepast! waarom?)
+%TODO: original files (e.g. 2MRI of 3PET) worden ook aangepast! waarom?
 
 % Clear workspace
 clearvars -except pathname pathname_reo
@@ -387,7 +344,7 @@ scans_coreg = dir(pathname_coreg);
 scans_coreg = scans_coreg(3:end); % Remove . and ..
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%Coregistratie CT -MRI%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%Coregistratie CT-MRI%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     global ref_image warp_image
@@ -395,9 +352,9 @@ scans_coreg = scans_coreg(3:end); % Remove . and ..
     ref_image = [pathname_coreg,scans_coreg(1).name,',1']; %CT
     warp_image = [pathname_coreg,scans_coreg(2).name, ',1']; %MRI
 
-    % List of open inputs TODO test different coreg method
-    nrun = 10; % enter the number of runs here 5
-    jobfile = {'C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\Scripts\coregister_preclinical_job.m'};
+    % List of open inputs
+    nrun = 5; % enter the number of runs here 
+    jobfile = {'C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\DosePainting\coregister_preclinical_job.m'};
     jobs = repmat(jobfile, 1, nrun);
     inputs = cell(0, nrun);
     for crun = 1:nrun
@@ -413,7 +370,7 @@ scans_coreg = scans_coreg(3:end); % Remove . and ..
 
     % List of open inputs
     nrun = 10; % enter the number of runs here
-    jobfile = {'C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\Scripts\coregister_preclinical_job_PET.m'};
+    jobfile = {'C:\Users\Hoofdgebruiker\OneDrive - UGent\Doctoraat\MATLAB\Preclinical\DosePainting\coregister_preclinical_job_PET.m'};
     jobs = repmat(jobfile, 1, nrun);
     inputs = cell(0, nrun);
     for crun = 1:nrun
@@ -421,10 +378,13 @@ scans_coreg = scans_coreg(3:end); % Remove . and ..
     spm('defaults', 'PET');
     spm_jobman('run', jobs, inputs{:});
 
-    toc
+    toc                         % STOP TIMER
     
-    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 %% Examine coregistration
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Often better to check with external imaging software (e.g. Amide)
+% And adjust coregistration if necessary
 
 % Clear workspace
 clearvars -except pathname pathname_coreg  
@@ -450,8 +410,3 @@ CmpCT_MRI = CompImages(CT,MRI_coreg);
 waitfor(CmpCT_MRI)
 
 CmpCT_PET = CompImages(CT,PET_coreg);
-
-
-
-%   Data: save images in mango: orientation 
-%         RAS format: +x is Right, +y is Anterior, +z is Superior
