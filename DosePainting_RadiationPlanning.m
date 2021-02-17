@@ -9,11 +9,10 @@
 % therapy with the SARRP (XStrahl). 
 %
 % Specifications/limitations SARRP:
-%       - Couch positions:  0Â°, -45Â°, -90Â°
+%       - Couch positions:  0°, -45°, -90°
 %       - Gantry angles:    any angle
-%                           for 0Â° & -45Â°   -> 0Â° - 120Â°
-%                           for -90Â°        -> 0Â° - 60Â° (avoid collision
-%                           with animal)
+%                           for 0° & -45°   -> 0° - 120°
+%                           for -90°        -> 0° - 60° (avoid collision with animal)
 %       - Jaw size:         maximum: 40 x 80 mm 
 %                           minmum: 1 x 1 mm
 %       - SARRP resolution  yaw size = 0.01 mm
@@ -376,7 +375,7 @@ output = jawPos_3arcs(angles,couch_pos,centroids,SROW,...
     projection_90,...
     projection_95);
 
-save('SARRPinput.mat','output')
+save('beamconfiguration.mat','output')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% INFORMATION TABLE
@@ -404,3 +403,52 @@ for k = 1:length(angles)
 end
 
 SARRPinput = table(Gantry_angle,Couch_position,VOI,Yawdist_X,Yawdist_Y,Yaw_Mid)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% JSON ENCODING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define desired beams to export in json file
+
+% Desired beams VOI50 (method 8)
+desired_beams(1).angles_couch0   = [20, 40, 60, 80, 100, 120];
+desired_beams(1).angles_couchm45 = [20, 40, 60, 80, 100, 120];
+desired_beams(1).angles_couchm90 = [0, 20, 40, 60];
+desired_beams(1).VOI = 'VOI50';
+
+% Desired beams VOI60 (method 8)
+desired_beams(2).angles_couch0   = [20, 40, 60];
+desired_beams(2).angles_couchm45 = [20, 40, 60];
+desired_beams(2).angles_couchm90 = [0, 20, 40, 60];
+desired_beams(2).VOI = 'VOI60';
+
+% Desired beams VOI70 (method 8)
+desired_beams(3).angles_couch0   = [20, 40, 60];
+desired_beams(3).angles_couchm45 = [20, 40, 60];
+desired_beams(3).angles_couchm90 = [0, 20, 40, 60];
+desired_beams(3).VOI = 'VOI70';
+
+% Desired beams VOI80 (method 8)
+desired_beams(4).angles_couch0   = [20, 40, 60];
+desired_beams(4).angles_couchm45 = [20, 40, 60];
+desired_beams(4).angles_couchm90 = [0, 20, 40, 60];
+desired_beams(4).VOI = 'VOI80';
+
+% Desired beams VOI90 (method 8)
+desired_beams(5).angles_couch0   = [20, 40, 60];
+desired_beams(5).angles_couchm45 = [20, 40, 60];
+desired_beams(5).angles_couchm90 = [0, 20, 40, 60];
+desired_beams(5).VOI = 'VOI90';
+
+% Desired beams VOI95 (method 8)
+% desired_beams(6).angles_couch0   = [];
+% desired_beams(6).angles_couchm45 = [];
+% desired_beams(6).angles_couchm90 = [];
+% desired_beams(6).VOI = 'VOI95';
+
+% Dose distribution
+dose_distri = [2000, 200, 200, 200, 200];   % Dose distribution SUV50, SUV60, SUV70 ...
+
+%TODO check if dose_distri has equal length as desired_beams
+
+jsonSARRP(output,desired_beams,dose_distri)
+
