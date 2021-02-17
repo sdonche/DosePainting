@@ -1,4 +1,4 @@
-function [x_p,y_p,z_p] = Orthproject(a,b,c,x_1,y_1,z_1,x_0,y_0,z_0)
+function [x_p,y_p,z_p] = orthoProject_v1(a,b,c,x_1,y_1,z_1,x_0,y_0,z_0)
 % input variables:
 %   - Variables plane:
 %           - Normal vector: (a,b,c)
